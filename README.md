@@ -1,9 +1,9 @@
 # Multivariate-time-series-domain-adaptation
-(Still working on revising the code for clarity.)
+(Still working on modifying codes for clarity.)
 
 Implementations of some domain adaptation algorithms with simple codes in Pytorch.
 
-Some codes are only made for image DA, but I modified for multi-variate time-series DA.
+Some codes are originally made for image DA, but I modified for multi-variate time-series DA.
 
 
 ## Algorithms Implemented
