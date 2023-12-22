@@ -12,6 +12,7 @@ Some codes are only made for image DA, but I modified for multi-variate time-ser
 | 1. Bidirectional | [Bidirectional One-Shot Unsupervised Domain Mapping](https://arxiv.org/abs/1909.01595)|
 | 2. (recurrent DANN) R-DANN   | [Domain-Adversarial Training of Neural Networks](https://arxiv.org/abs/1505.07818)|
 | 3. CoDATS   | [Multi-Source Deep Domain Adaptation with Weak Supervision for Time-Series Sensor Data](https://arxiv.org/abs/1801.01290) |
+| 4. DSN   | [Domain Separation Networks](https://arxiv.org/abs/1801.01290) |
 
 ## Dependencies
 Pytorch
