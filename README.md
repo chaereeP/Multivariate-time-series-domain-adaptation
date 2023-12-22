@@ -15,7 +15,7 @@ Some codes are originally made for image DA, but I modified for multi-variate ti
 | 4. DSN   | [Domain Separation Networks](https://arxiv.org/abs/1801.01290) |
 
 If you want R-DANN, CoDATS, VRADA codes, see "DANN.py" file. These codes are based on DANN, so only the backbone networks are different.
-You can simple train these algorithm by changing the backbone in this file.
+You can simply train these algorithm by changing the backbone in this file.
 
 ## Dependencies
 Pytorch
