@@ -203,78 +203,6 @@ class LSTM(nn.Module):
         return torch.zeros(1, self.hidden_size)
 
 
-
-class LSTM2(nn.Module): # kinnematics
-    def __init__(self, input_size, num_layers, hidden_size, output_size,device):
-        super(LSTM2, self).__init__()
-        self.device=device
-        self.num_layers=num_layers
-        self.hidden_size = hidden_size
-        self.input_size = input_size
-        self.lstm1 = nn.LSTM(input_size, hidden_size, num_layers=1,batch_first=True)
-        # self.lstm2 = nn.LSTM(hidden_size, hidden_size, num_layers=1,batch_first=True)
-        # self.i2o = nn.Linear(hidden_size , hidden_size)
-        # self.relu = nn.functional.tanh(hidden_size)
-        self.relu = nn.ReLU()
-        self.linear1 = nn.Linear(hidden_size,output_size)
-        # self.relu2 = nn.ReLU()
-        # self.linear2 = nn.Linear(hidden_size,output_size)
-
-
-    def forward(self, input):
-        h_0 = Variable(torch.zeros(self.num_layers, input.size(0), self.hidden_size).to(self.device))
-        c_0 = Variable(torch.zeros(self.num_layers, input.size(0), self.hidden_size).to(self.device))
-        # h_1 = Variable(torch.zeros(self.num_layers, self.hidden_size, self.hidden_size).to(self.device))
-        # c_1 = Variable(torch.zeros(self.num_layers, self.hidden_size, self.hidden_size).to(self.device))
-        # Propagate input through LSTM
-        # batch seq feature
-
-        output, (h_out, _) = self.lstm1(input, (h_0, c_0))
-        output = output.view(-1, self.hidden_size)
-        # out= torch.nn.functional.tanh(output)
-        out =self.relu(output)
-        out=self.linear1(out)
-        # out=self.relu2(out)
-        return out
-
-    def initHidden(self):
-        return torch.zeros(1, self.hidden_size)
-
-
-class LSTM3(nn.Module): # sim_to_real_mapping
-    def __init__(self, input_size, num_layers, hidden_size, output_size,device):
-        super(LSTM3, self).__init__()
-        self.device=device
-        self.num_layers=num_layers
-
-        self.hidden_size = hidden_size
-        self.lstm1 = nn.LSTM(input_size, hidden_size, 1, batch_first=True)
-        self.lstm2 = nn.LSTM(hidden_size, hidden_size, 1, batch_first=True)
-        self.output_size=output_size
-        self.relu = nn.ReLU()
-
-        self.linear1 = nn.Linear(hidden_size, output_size)
-    def forward(self, x):
-        global device
-        # x: tensor of shape (batch_size, seq_length, hidden_size)
-        h_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        c_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        h_1 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        c_1 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-
-        outputs, (_, _) = self.lstm1(x, (h_0, c_0))
-        outputs, (_, _) = self.lstm2(outputs, (h_1, c_1))
-        outputs = outputs.view(-1, self.hidden_size)
-
-        outputs =self.relu(outputs)
-        outputs=self.linear1(outputs)
-        # if self.normalize == 'layer':
-        #     outputs=self.m(outputs)
-        return outputs
-
-    def initHidden(self):
-        return torch.zeros(1, self.hidden_size)
-
 def predictor(model, sim, real, device):
     predictions, losses = [], []
     criterion = nn.MSELoss().to(device)
@@ -353,82 +281,6 @@ def get_precision_recall(score, label, num_samples, beta=1.0, sampling='log', pr
 
     return precision, recall, f1
 
-class Supervision_collision(nn.Module):
-    def __init__(self,input_size,hidden_size,device):
-        super(Supervision_collision, self).__init__()
-        self.hidden_size = hidden_size
-        self.device = device
-
-        self.l1 = nn.Linear(input_size, hidden_size)
-        self.l2 = nn.Linear(hidden_size, 1)
-
-    def forward(self, x):
-
-        w1 = self.l1(x)
-        w2 = self.l2(w1)
-
-        return w1,w2
-
-class Supervision_kinematics(nn.Module):
-    def __init__(self, input_size, hidden_size, device):
-        super(Supervision_kinematics, self).__init__()
-        self.hidden_size = hidden_size
-        self.device = 'cuda'
-        self.lstm1 = nn.LSTM(input_size, hidden_size, 1, batch_first=True)
-        # self.lstm2 = nn.LSTM(hidden_size, hidden_size, 1, batch_first=True)
-
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
-
-        self.l1 = nn.Linear(hidden_size, hidden_size)
-        self.dout = nn.Dropout(0.1)
-        self.l2 = nn.Linear(hidden_size, 369)
-        # self.l3 = nn.Linear(hidden_size, 369)
-
-
-    def forward(self, x):
-        h_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        c_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        # h_1 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        # c_1 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        # batch seq feature
-        x, (h_out, _) = self.lstm1(x, (h_0, c_0))
-        # x, (h_out, _) = self.lstm2(x, (h_1, c_1))
-        x = x.view(-1, self.hidden_size)
-        # out= torch.nn.functional.tanh(output)
-        x =self.relu(x)
-        # x = self.dout(x)
-        x=self.relu(self.l1(x))
-        x=self.tanh(self.l2(x))
-        # x=self.relu(self.l3(x))
-        return x
-class LSTM_prediction(nn.Module):
-    def __init__(self, input_size, hidden_size, device):
-        super(LSTM_prediction, self).__init__()
-        self.hidden_size = hidden_size
-        self.device = device
-        self.lstm1 = nn.LSTM(input_size, hidden_size, 1, batch_first=True)
-        # self.lstm2 = nn.LSTM(hidden_size, 5, 1, batch_first=True)
-        self.l1 = nn.Linear(hidden_size, 5)
-
-        self.relu = nn.ReLU()
-        self.dout = nn.Dropout(0.1)
-
-    def forward(self, x):
-        h_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        c_0 = Variable(torch.zeros(1, x.size(0), self.hidden_size).to(self.device))
-        x, (h_out, _) = self.lstm1(x, (h_0, c_0))
-        x = self.dout(h_out)
-        x = self.l1(x)
-        x = self.relu(x)
-        return x
-    def predict(self,x):
-        predicted_arr = []
-        for i in range(len(x[0])-100):
-            predicted = self.forward(x[0,i:100+i,:].reshape(1,-1,10))
-            predicted_arr.append(predicted)
-        return predicted_arr
-
 class MMD_Loss(nn.Module):
     def __init__(self, kernel='rbf'):
         super(MMD_Loss, self).__init__()
@@ -446,19 +298,6 @@ class MMD_Loss(nn.Module):
         cross_kernel = gaussian_kernel(source, target, sigma)
         loss = source_kernel.mean() + target_kernel.mean() - 2 * cross_kernel.mean()
         return loss
-
-class LSTM_MMD(nn.Module):
-    def __init__(self, hidden_dim, decive):
-        super(LSTM_MMD, self).__init__()
-        output_size = 5
-        self.layer = Encoder( 5, hidden_dim ).to(device)
-        self.mmd = MMD_Loss()
-
-    def forward(self, source, target):
-        source = self.layer(source)
-        target = self.layer(target)
-        mmd_loss = self.mmd(source, target)
-        return mmd_loss
 
 class Supervision(nn.Module):
     def __init__(self,AE_mode, Recon_mode,super_input,auto_input, kine_hidden,collision_hidden, autoencoder_hidden, device):
